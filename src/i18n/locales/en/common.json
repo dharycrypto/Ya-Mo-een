@@ -1,0 +1,22 @@
+{
+  "app_name": "Ya Mo'een",
+  "welcome": "Welcome",
+  "points": "Points",
+  "home": "Home",
+  "my_requests": "My Requests",
+  "notifications": "Notifications",
+  "profile": "Profile",
+  "search": "Search",
+  "categories": "Categories",
+  "education": "Education",
+  "maintenance": "Maintenance",
+  "tech": "Tech",
+  "transport": "Transport",
+  "other": "Other",
+  "browse_markdown": "Browse Services",
+  "chat": "Messages",
+  "wallet": "Wallet",
+  "post_service": "Post Request",
+  "sign_in": "Sign In",
+  "sign_out": "Sign Out"
+}

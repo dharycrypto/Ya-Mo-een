@@ -1,0 +1,11 @@
+{
+  "browse_markdown": "Marketplace",
+  "points_offered": "Points Offered",
+  "accept_service": "Accept Service",
+  "details": "Service Details",
+  "status_open": "Open",
+  "status_in_progress": "In Progress",
+  "status_completed": "Completed",
+  "status_confirmed": "Confirmed",
+  "status_cancelled": "Cancelled"
+}
