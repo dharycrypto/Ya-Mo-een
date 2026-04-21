@@ -1,18 +1,57 @@
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Settings, LogOut, Star, History, Bell, Edit2, ChevronLeft, ChevronRight, Coins, Wallet, Shield } from 'lucide-react';
+import { Settings, LogOut, Star, History, Bell, Edit2, ChevronLeft, ChevronRight, Coins, Wallet, Shield, Check, X } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { City } from '@/types';
 
 export default function ProfilePage() {
   const { t } = useTranslation();
   const { lng } = useParams();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, updateProfile } = useAuth();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(user?.name || '');
+  const [editBio, setEditBio] = useState(user?.bio || '');
+  const [editCity, setEditCity] = useState<City>(user?.city || 'sanaa');
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setEditName(user.name || '');
+      setEditBio(user.bio || '');
+      setEditCity(user.city || 'sanaa');
+    }
+  }, [user]);
+
+  const handleSaveProfile = async () => {
+    setIsSaving(true);
+    try {
+      await updateProfile({
+        name: editName,
+        bio: editBio,
+        city: editCity,
+      });
+      toast.success('تم تحديث الملف الشخصي بنجاح');
+      setIsEditing(false);
+    } catch (error) {
+      toast.error('حدث خطأ أثناء تحديث الملف الشخصي');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const transactions = [
     { id: '1', reason: 'مكافأة تسجيل', amount: 100, date: '2026-04-10', type: 'credit' },
@@ -21,6 +60,8 @@ export default function ProfilePage() {
   ];
 
   if (!user) return <div className="p-10 text-center">Please login</div>;
+
+  const cities: City[] = ['sanaa', 'aden', 'taiz', 'hodeidah', 'ibb', 'mukalla', 'dhamar', 'other'];
 
   return (
     <div className="p-4 md:p-8 space-y-8 max-w-4xl mx-auto">
@@ -44,17 +85,80 @@ export default function ProfilePage() {
           
           <div className="text-center md:text-right flex-1">
             <h2 className="text-2xl font-black text-foreground">{user.name}</h2>
-            <p className="text-muted-foreground font-medium mb-4">{t(`common:${user.city}`)}، اليمن</p>
+            <p className="text-muted-foreground font-medium mb-2">{t(`common:${user.city}`)}، اليمن</p>
+            {user.bio && (
+              <p className="text-sm text-muted-foreground line-clamp-2 max-w-md mb-4 mx-auto md:mx-0 leading-relaxed font-medium">
+                {user.bio}
+              </p>
+            )}
             <div className="flex flex-wrap justify-center md:justify-start gap-2">
-              <Badge variant="secondary" className="bg-accent text-accent-foreground rounded-full px-3 border-0 py-1 font-bold text-[10px] uppercase">مستخدم موثوق</Badge>
+              <Badge variant="secondary" className="bg-accent text-primary rounded-full px-3 border-0 py-1 font-bold text-[10px] uppercase">مستخدم موثوق</Badge>
               <Badge variant="secondary" className="bg-blue-50 text-blue-600 rounded-full px-3 border-0 py-1 font-bold text-[10px] uppercase">متطوع نشط</Badge>
             </div>
           </div>
 
-          <Button variant="outline" className="rounded-full px-6 h-10 gap-2 border-border shadow-sm hover:bg-muted shrink-0">
-             <Edit2 className="h-4 w-4" />
-             <span className="text-sm font-bold">تعديل البيانات</span>
-          </Button>
+          <Dialog open={isEditing} onOpenChange={setIsEditing}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="rounded-full px-6 h-10 gap-2 border-border shadow-sm hover:bg-muted shrink-0">
+                 <Edit2 className="h-4 w-4" />
+                 <span className="text-sm font-bold">تعديل البيانات</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="rounded-2xl max-w-md border-border p-8">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-black text-foreground">تعديل ملفك الشخصي</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="px-1 text-sm font-bold">الاسم الكامل</Label>
+                  <Input 
+                    id="name" 
+                    value={editName} 
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="اسمك هنا..."
+                    className="rounded-xl h-11 border-border"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="city" className="px-1 text-sm font-bold">المدينة</Label>
+                  <Select value={editCity} onValueChange={(v: City) => setEditCity(v)}>
+                    <SelectTrigger className="rounded-xl h-11 border-border">
+                      <SelectValue placeholder="اختر المدينة..." />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {cities.map((city) => (
+                        <SelectItem key={city} value={city}>
+                          {t(`common:${city}`)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bio" className="px-1 text-sm font-bold">نبذة تعريفية</Label>
+                  <Textarea 
+                    id="bio" 
+                    value={editBio} 
+                    onChange={(e) => setEditBio(e.target.value)}
+                    placeholder="أخبر المجتمع شيئاً عنك..."
+                    className="rounded-xl min-h-[100px] border-border leading-relaxed"
+                  />
+                </div>
+              </div>
+              <DialogFooter className="gap-2 sm:gap-0">
+                <DialogClose asChild>
+                  <Button variant="ghost" className="rounded-xl flex-1 font-bold">إلغاء</Button>
+                </DialogClose>
+                <Button 
+                  onClick={handleSaveProfile} 
+                  disabled={isSaving}
+                  className="rounded-xl flex-1 bg-primary text-white font-bold"
+                >
+                  {isSaving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
         
         {/* Decorative background shape */}

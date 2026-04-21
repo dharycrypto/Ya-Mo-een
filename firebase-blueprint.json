@@ -1,0 +1,27 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account information and points",
+      "type": "object",
+      "properties": {
+        "_id": { "type": "string" },
+        "tokenIdentifier": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "points": { "type": "number" },
+        "ratingSum": { "type": "number" },
+        "ratingCount": { "type": "number" },
+        "city": { "type": "string" },
+        "photoUrl": { "type": "string" }
+      },
+      "required": ["_id", "name", "email", "points"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Stores user profile and point balance"
+    }
+  }
+}
